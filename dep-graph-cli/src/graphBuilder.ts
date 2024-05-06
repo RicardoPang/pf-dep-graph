@@ -6,7 +6,7 @@ import {
   ICheckFileResult,
   IBuildGraphOptions
 } from './type'
-import { isArray, isObject } from './constants'
+import { isArray, isObject } from './utils'
 import * as path from 'path'
 import * as fs from 'fs/promises'
 

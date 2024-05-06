@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { mapActions, readVersion } from './constants'
+import { mapActions, readVersion } from './utils'
 import { startServer } from './server'
 
 export const main = async () => {

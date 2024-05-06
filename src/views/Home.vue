@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <h2>Node Library 依赖关系分析</h2>
+    <h2>依赖关系</h2>
     <el-input
       v-model="q"
       placeholder="请输入"

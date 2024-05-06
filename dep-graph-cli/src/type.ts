@@ -34,8 +34,6 @@ export interface IGetGrapDataOptions {
   depth?: number
   // 搜索内容
   q?: string
-  // json文件导出
-  json?: string
 }
 
 export interface IDepOptions {

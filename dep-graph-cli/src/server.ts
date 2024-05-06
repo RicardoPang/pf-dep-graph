@@ -7,20 +7,29 @@ import {
   HEADERS,
   PORT,
   getProjectPakcageJson,
-  isArray,
-  readPackageJson,
-  readPkgPath
-} from './constants'
+  getQueryParam,
+  readPkgPath,
+  saveJsonToFile
+} from './utils'
 import { errorCatch } from './middlewares/errorCatch'
 import { GetGraphControllerResponse } from './type'
 import { DependencyGraphBuilder } from './graphBuilder'
 import open from 'open'
 
-const app = new Koa()
-const router = new Router()
-
 // 开启服务器
 export const startServer = async (depth: number, json: string) => {
+  if (json) {
+    generateAndSaveGraph(depth, json)
+  } else {
+    startApiServer(depth)
+  }
+}
+
+// 启动服务器提供API
+const startApiServer = async (depth: number) => {
+  const app = new Koa()
+  const router = new Router()
+
   app.use(async (ctx: Context, next: () => Promise<void>) => {
     console.log(`Process ${ctx.request.method} ${ctx.request.url}...`)
     ctx.set(HEADERS)
@@ -36,6 +45,7 @@ export const startServer = async (depth: number, json: string) => {
 
   app.use(logger())
   app.use(errorCatch())
+
   router.get('/api/graph', async (ctx: Context, next: () => Promise<void>) => {
     try {
       const q = getQueryParam(ctx.query, 'q')
@@ -48,8 +58,7 @@ export const startServer = async (depth: number, json: string) => {
       const data = await graphBuilder.getGraphData({
         q,
         pkg,
-        depth,
-        json
+        depth
       })
 
       if (data) {
@@ -79,12 +88,14 @@ export const startServer = async (depth: number, json: string) => {
   })
 }
 
-function getQueryParam(query: any, key: string): string | undefined {
-  const value = query[key]
-  if (isArray(value)) {
-    return value[0]
-  } else if (typeof value === 'string') {
-    return value ? value : undefined
-  }
-  return undefined
+// 生成依赖关系图并保存到文件
+const generateAndSaveGraph = async (depth: number, json: string) => {
+  const pkgDir = await readPkgPath()
+  const pkg = await getProjectPakcageJson()
+  console.log('项目的package.json内容:', pkg)
+
+  const graphBuilder = new DependencyGraphBuilder(pkgDir)
+  const data = await graphBuilder.getGraphData({ pkg, depth })
+
+  await saveJsonToFile(JSON.stringify(data), json)
 }

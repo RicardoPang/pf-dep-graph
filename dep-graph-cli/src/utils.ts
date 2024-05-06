@@ -1,9 +1,10 @@
 import path from 'path'
 import fs from 'fs/promises'
 
+const projectRoot = process.cwd()
+
 // 读取package.json
 export async function getProjectPakcageJson() {
-  const projectRoot = process.cwd()
   const packageJsonPath = path.join(projectRoot, 'package.json')
   try {
     const packageJsonRaw = await fs.readFile(packageJsonPath, 'utf-8')
@@ -76,5 +77,31 @@ export const mapActions = {
     alias: '',
     description: 'command not found',
     examples: []
+  }
+}
+
+export function getQueryParam(query: any, key: string): string | undefined {
+  const value = query[key]
+  if (isArray(value)) {
+    return value[0]
+  } else if (typeof value === 'string') {
+    return value ? value : undefined
+  }
+  return undefined
+}
+
+export async function saveJsonToFile(json, filePath) {
+  const folderPath = path.resolve(projectRoot, filePath)
+  const graphFilePath = path.join(folderPath, 'graph.json')
+
+  try {
+    // 检查路径是否存在, 不存在创建
+    await fs.mkdir(folderPath, { recursive: true })
+
+    // 写入
+    await fs.writeFile(graphFilePath, json, 'utf-8')
+    console.log(`JSON已成功保存到文件: ${graphFilePath}`)
+  } catch (error) {
+    console.error(`保存JSON到文件错误: ${error}`)
   }
 }

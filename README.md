@@ -80,11 +80,40 @@
   dep-graph-cli ana -d 2
   ```
 
-### 附： 在其他项目运行
+### 附： 在其他项目使用cli
 
 - 拉取项目
-- 前端打包 npm run build
-- 启动 http-server
-- 运行 dep-graph-cli
-- 在自己的项目中执行 npm i dep-graph-cli
-- 执行命令 dep-graph-cli ana -d 2 查看依赖
+
+  ```bash
+  git clone https://github.com/Devil-Training-Camp/pf-dep-graph.git
+  ```
+
+- 执行npm install
+
+  ```
+  npm install
+  ```
+
+- 打包
+
+  ```
+  npm run build
+  ```
+
+- 进入 dist 目录启动服务
+
+  ```
+  http-server -p 8080
+  ```
+
+- 在自己的项目中安装
+
+  ```
+  npm i dep-graph-cli
+  ```
+
+- 执行cli
+
+  ```
+  dep-graph-cli ana -d 2
+  ```
