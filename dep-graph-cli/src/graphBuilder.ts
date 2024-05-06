@@ -34,7 +34,7 @@ export class DependencyGraphBuilder {
     if (isObject(pkg) && !isArray(pkg)) {
       const allDeps = this.getDependency(pkg)
       this.visited.clear()
-      this.maxDepth = depth ?? 0
+      this.maxDepth = depth ?? 2
       this.firstPassParam = true
       this.foundParam = true
 

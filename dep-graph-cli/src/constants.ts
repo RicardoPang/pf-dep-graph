@@ -1,6 +1,20 @@
 import path from 'path'
 import fs from 'fs/promises'
 
+// 读取package.json
+export async function getProjectPakcageJson() {
+  const projectRoot = process.cwd()
+  const packageJsonPath = path.join(projectRoot, 'package.json')
+  try {
+    const packageJsonRaw = await fs.readFile(packageJsonPath, 'utf-8')
+    const packageJson = JSON.parse(packageJsonRaw)
+    return packageJson
+  } catch (error) {
+    console.error('读取package.json时发生错误:', error)
+    return null
+  }
+}
+
 // 配置信息路径
 export const readPkgPath = async (): Promise<string> => {
   const filePath = path.join(__dirname, '..', 'package.json')

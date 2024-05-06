@@ -6,6 +6,7 @@ import {
   CLIENT_PORT,
   HEADERS,
   PORT,
+  getProjectPakcageJson,
   isArray,
   readPackageJson,
   readPkgPath
@@ -38,8 +39,10 @@ export const startServer = async (depth: number, json: string) => {
   router.get('/api/graph', async (ctx: Context, next: () => Promise<void>) => {
     try {
       const q = getQueryParam(ctx.query, 'q')
-      const pkg = await readPackageJson()
       const pkgDir = await readPkgPath()
+
+      const pkg = await getProjectPakcageJson()
+      console.log('项目的package.json内容:', pkg)
 
       const graphBuilder = new DependencyGraphBuilder(pkgDir)
       const data = await graphBuilder.getGraphData({
