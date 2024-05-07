@@ -40,11 +40,17 @@
 
   命令开启服务(模拟)
 
-  2. 新开终端进入 dep-graph-cli 目录执行
+  3. 新开终端进入 dep-graph-cli 目录执行
 
   ```bash
   dep-graph-cli ana -d 2
   ```
+  如果本地执行dep-graph-cli报错，可以尝试执行
+  
+  ```bash
+  sudo npm link
+  ```
+  或直接安装线上的npm包 npm i dep-graph-cli
 
   命令执行后 会在Chrome浏览器启动项目，直接操作即可，支持拖拽、缩放、hover高亮、搜索
 
