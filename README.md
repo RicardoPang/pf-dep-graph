@@ -126,6 +126,12 @@
 
 ### 附: 支持 --json=[file-path] 参数，传入后不再打开网页，只是将依赖关系以 JSON 形式存储到用户指定的文件
 
-```
+```bash
 dep-graph-cli ana -d 3 -j ./target
 ```
+
+
+
+### buildGraph 关键流程
+
+![依赖分析](https://p.ipic.vip/6v6let.jpg)

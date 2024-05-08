@@ -29,12 +29,13 @@ export class DependencyGraphBuilder {
    * @returns 图形数据
    */
   public async getGraphData(options: IGetGrapDataOptions) {
+    debugger
     const { q, pkg, depth } = options
 
     if (isObject(pkg) && !isArray(pkg)) {
       const allDeps = this.getDependency(pkg)
       this.visited.clear()
-      this.maxDepth = depth ?? 2
+      this.maxDepth = depth ?? Infinity
       this.firstPassParam = true
       this.foundParam = true
 
@@ -67,6 +68,7 @@ export class DependencyGraphBuilder {
    * @param dependencies 依赖包依赖
    * @param depth 递归深度
    * @param typeCounter 节点类型
+   * @param q 搜索关键字
    * @returns 构建后的图
    */
   private async buildGraph({
@@ -80,17 +82,20 @@ export class DependencyGraphBuilder {
     graph: IGraphProps[]
     nodeArray: INodeArrayProps[]
   }> {
+    // 初始化graph和nodeArray
     const graph: IGraphProps[] = []
     const nodeArray: INodeArrayProps[] = []
 
-    // 设置跳出递归条件
+    // 设置跳出递归条件 超过将当前层的graph和nodeArray返回给调用者
     if (depth > this.maxDepth) {
       return { graph, nodeArray }
     }
-    // 遍历依赖关系
+    // 遍历当前层依赖项
     for (const dep in dependencies) {
+      // 格式化
       const curDep = dep + dependencies[dep].replace('^', '@')
 
+      // 检查已访问集合，可能跳过依赖项
       if (this.visited.has(curDep)) {
         continue
       }
@@ -130,8 +135,9 @@ export class DependencyGraphBuilder {
         continue
       }
 
+      // 获取子依赖dependencies
       const childDeps = this.getDependency(JSON.parse(depPkg))
-      // 构建子依赖关系图
+      // 递归调用buildGraph(下一层)
       const childGraphResult = await this.buildGraph({
         pkgDir: childPath!,
         source: dep,
@@ -140,10 +146,15 @@ export class DependencyGraphBuilder {
         typeCounter: typeCounter,
         q: q === dep ? dep : q
       })
+
+      // 合并下一层返回的graph和nodeArray到当前层 确保当前层的数据包含了下一层的结果
       nodeArray.push(...childGraphResult.nodeArray)
       graph.push(...childGraphResult.graph)
+
       typeCounter++
     }
+
+    // 返回当前层的graph和nodeArray到上一层调用者
     return { graph, nodeArray }
   }
 
