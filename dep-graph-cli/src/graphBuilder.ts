@@ -29,7 +29,6 @@ export class DependencyGraphBuilder {
    * @returns 图形数据
    */
   public async getGraphData(options: IGetGrapDataOptions) {
-    debugger
     const { q, pkg, depth } = options
 
     if (isObject(pkg) && !isArray(pkg)) {

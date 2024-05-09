@@ -45,11 +45,13 @@
   ```bash
   dep-graph-cli ana -d 2
   ```
+
   如果本地执行dep-graph-cli报错，可以尝试执行
-  
+
   ```bash
   sudo npm link
   ```
+
   或直接安装线上的npm包 npm i dep-graph-cli
 
   命令执行后 会在Chrome浏览器启动项目，直接操作即可，支持拖拽、缩放、hover高亮、搜索
@@ -130,8 +132,60 @@
 dep-graph-cli ana -d 3 -j ./target
 ```
 
-
-
 ### buildGraph 关键流程
 
 ![依赖分析](https://p.ipic.vip/6v6let.jpg)
+
+### 新增解析 lock file
+
+> /dep-graph-cli/src/server.ts
+
+````
+// 开启服务器
+export const startServer = async (depth: number, json: string) => {
+  // 解析 lock file，需要兼容 npm/yarn/pnpm
+  const { name, content, lockPath } = await getProjectLockFile()
+  switch (name) {
+    case 'pnpm-lock.yaml': {
+      const pnpm = new PnpmLockGraph({ name, content, lockPath, depth })
+      const pnpmData = await pnpm.parse()
+      if (json) {
+        await saveJsonToFile(JSON.stringify(pnpmData), json)
+      } else {
+        startLockApiServer(pnpmData)
+      }
+      break
+    }
+    case 'yarn.lock': {
+      const yarn = new YarnLockGraph({ name, content, lockPath, depth })
+      const yarnData = await yarn.parse()
+      if (json) {
+        await saveJsonToFile(JSON.stringify(yarnData), json)
+      } else {
+        startLockApiServer(yarnData)
+      }
+      break
+    }
+    case 'package-lock.json': {
+      const npm = new NpmLockGraph({ name, content, lockPath, depth })
+      const npmData = await npm.parse()
+      if (json) {
+        await saveJsonToFile(JSON.stringify(npmData), json)
+      } else {
+        startLockApiServer(npmData)
+      }
+      break
+    }
+    default:
+      break
+  }
+
+  // 读 node_modules 里面的 packages 的目录/文件，找出依赖关系
+  // if (json) {
+  //   generateAndSaveGraph(depth, json)
+  // } else {
+  //   startApiServer(depth)
+  // }
+}
+```js
+````

@@ -7,12 +7,12 @@ export interface Response<T> {
 export interface IGraphProps {
   source: string
   target: string
-  value: number
+  value?: number
 }
 
 export interface INodeArrayProps {
   id: string
-  group: number
+  group?: number
 }
 
 export type GetGraphControllerResponse = Response<{

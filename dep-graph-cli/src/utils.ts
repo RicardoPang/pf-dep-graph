@@ -16,9 +16,40 @@ export async function getProjectPakcageJson() {
   }
 }
 
+export async function getProjectLockFile(): Promise<{
+  name: string
+  content: any
+  lockPath: string
+}> {
+  const lockFiles = ['pnpm-lock.yaml', 'yarn.lock', 'package-lock.json']
+  try {
+    for (const lockFile of lockFiles) {
+      const lockFilePath = path.join(projectRoot, lockFile)
+      try {
+        const lockFileContent = await fs.readFile(lockFilePath, 'utf-8')
+        const lockPath = await readPkgPath(lockFile)
+        return { name: lockFile, content: lockFileContent, lockPath }
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          console.error(`读取 ${lockFile} 时发生错误:`, error)
+          throw error
+        }
+      }
+    }
+
+    const packageJsonPath = path.join(projectRoot, 'package.json')
+    const packageJsonContent = await fs.readFile(packageJsonPath, 'utf-8')
+    const lockPath = await readPkgPath()
+    return { name: 'package.json', content: packageJsonContent, lockPath }
+  } catch (error) {
+    console.error('读取文件时发生错误:', error)
+    throw error
+  }
+}
+
 // 配置信息路径
-export const readPkgPath = async (): Promise<string> => {
-  const filePath = path.join(__dirname, '..', 'package.json')
+export const readPkgPath = async (suffix = 'package.json'): Promise<string> => {
+  const filePath = path.join(__dirname, '..', suffix)
   return filePath
 }
 

@@ -63,6 +63,8 @@ const renderChart = (convertedData: { nodes: any[]; links: any[] }) => {
     .attr('stroke', '#999')
     .attr('stroke-opacity', 0.6)
     .attr('fill', 'none')
+    .on('mouseover', handleLinkMouseOver)
+    .on('mouseout', handleLinkMouseOut)
   const node = svg
     .append('g')
     .attr('fill', 'currentColor')
@@ -80,6 +82,41 @@ const renderChart = (convertedData: { nodes: any[]; links: any[] }) => {
     .on('mouseout', handleMouseOut)
   // node.append('title').text((d) => d.id)
   chart.value.appendChild(svg.node()!)
+
+  function handleLinkMouseOver(event: MouseEvent, d: any) {
+    // 移除旧的tooltip
+    d3.select('.custom-link-tooltip').remove()
+
+    // 获取鼠标相对于文档的位置
+    const mouseX = event.pageX
+    const mouseY = event.pageY
+
+    // 计算 tooltip 的位置相对于鼠标位置
+    const tooltipOffsetX = 10 // 水平偏移量
+    const tooltipOffsetY = 10 // 垂直偏移量
+
+    // 显示tooltip
+    d3.select('body')
+      .append('div')
+      .attr('class', 'custom-link-tooltip')
+      .html(`来源：${d.source.id}<br/>去向：${d.target.id}`)
+      .style('position', 'absolute')
+      .style('left', `${mouseX + tooltipOffsetX}px`)
+      .style('top', `${mouseY + tooltipOffsetY}px`)
+      .style('opacity', 0.9)
+      .style('visibility', 'visible')
+      .style('z-index', 9999)
+      .style('background-color', 'white')
+      .style('color', '#333')
+      .style('border-radius', '4px')
+      .style('padding', '8px')
+      .style('font-size', '14px')
+      .style('box-shadow', '2px 2px 6px rgba(0, 0, 0, 0.1)')
+  }
+
+  function handleLinkMouseOut() {
+    d3.select('.custom-link-tooltip').remove()
+  }
 
   // 鼠标移入节点 自定义高亮
   function handleMouseOver(event: MouseEvent, d: any) {
@@ -206,12 +243,12 @@ const convertData = (graph: IGraphProps[], nodeArray: INodeArrayProps[]) => {
   const links = graph.map((link) => ({
     source: link.source,
     target: link.target,
-    value: link.value
+    value: link.value ?? 1
   }))
 
   const nodes = nodeArray.map((node) => ({
     id: node.id,
-    group: node.group
+    group: node.group ?? 1
   }))
 
   console.log(nodes, links)

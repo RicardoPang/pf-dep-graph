@@ -7,12 +7,12 @@ export interface Response<T> {
 export interface IGraphProps {
   source: string
   target: string
-  value: number
+  value?: number
 }
 
 export interface INodeArrayProps {
   id: string
-  group: number
+  group?: number
 }
 
 export interface IGetGraphControllerParams {
@@ -75,6 +75,19 @@ export interface IBuildGraphOptions {
   depth?: number
   // 节点类型
   typeCounter?: number
+  // 搜索内容
+  q?: string
+}
+
+export interface ILockFileOptions {
+  // 依赖包
+  name: string
+  // 依赖包内容
+  content: any
+  // 依赖包路径
+  lockPath: string
+  // 递归深度
+  depth?: number
   // 搜索内容
   q?: string
 }
