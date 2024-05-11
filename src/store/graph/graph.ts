@@ -10,8 +10,8 @@ const useGraphStore = defineStore('graph', {
     }
   },
   actions: {
-    async getGraphDataAction(q?: string) {
-      const resp = await getGraphData(q)
+    async getGraphDataAction(searchQuery?: string) {
+      const resp = await getGraphData(searchQuery)
       if (resp.code === 0) {
         this.graph = resp.data.graph
         this.nodeArray = resp.data.nodeArray

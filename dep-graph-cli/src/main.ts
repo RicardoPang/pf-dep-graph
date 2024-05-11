@@ -1,4 +1,5 @@
 import { Command } from 'commander'
+import inquirer from 'inquirer'
 import { mapActions, readVersion } from './utils'
 import { startServer } from './server'
 
@@ -22,10 +23,21 @@ export const main = async () => {
 
     cmd.action((cmdObj) => {
       if (action === '*') {
-        console.log('command not found')
+        console.log('未找到命令')
       } else {
-        const { depth, json } = cmdObj
-        startServer(depth, json)
+        inquirer
+          .prompt({
+            type: 'confirm',
+            name: 'isParseLockFile',
+            message:
+              '是否希望通过解析lock文件来生成依赖关系图？否则会递归读取node_modules（默认解析锁文件, depth参数无效）',
+            default: true
+          })
+          .then((answers) => {
+            const { depth, json } = cmdObj
+            const { isParseLockFile } = answers
+            startServer(depth, json, isParseLockFile)
+          })
       }
     })
   })

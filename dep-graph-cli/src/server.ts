@@ -21,52 +21,50 @@ import { YarnLockGraph } from './scanLockFile/yarn'
 import { NpmLockGraph } from './scanLockFile/npm'
 
 // 开启服务器
-export const startServer = async (depth: number, json: string) => {
-  // 解析 lock file，需要兼容 npm/yarn/pnpm
-  const { name, content, lockPath } = await getProjectLockFile()
-  switch (name) {
-    case 'pnpm-lock.yaml': {
-      const pnpm = new PnpmLockGraph({ name, content, lockPath, depth })
-      const pnpmData = await pnpm.parse()
-      if (json) {
-        await saveJsonToFile(JSON.stringify(pnpmData), json)
-      } else {
-        startLockApiServer(pnpmData)
-      }
-      break
-    }
-    case 'yarn.lock': {
-      const yarn = new YarnLockGraph({ name, content, lockPath, depth })
-      const yarnData = await yarn.parse()
-      if (json) {
-        await saveJsonToFile(JSON.stringify(yarnData), json)
-      } else {
-        startLockApiServer(yarnData)
-      }
-      break
-    }
-    case 'package-lock.json': {
-      const npm = new NpmLockGraph({ name, content, lockPath, depth })
-      const npmData = await npm.parse()
-      if (json) {
-        await saveJsonToFile(JSON.stringify(npmData), json)
-      } else {
-        startLockApiServer(npmData)
-      }
-      break
-    }
-    default:
-      break
-  }
+export const startServer = async (
+  depth: number,
+  json: string,
+  isParseLockFile: boolean
+) => {
+  console.log('isParseLockFile', isParseLockFile)
 
-  // 读 node_modules 里面的 packages 的目录/文件，找出依赖关系
-  // if (json) {
-  //   generateAndSaveGraph(depth, json)
-  // } else {
-  //   startApiServer(depth)
-  // }
+  if (isParseLockFile) {
+    // 解析 lock file，需要兼容 npm/yarn/pnpm
+    const lockFileClasses = {
+      'pnpm-lock.yaml': PnpmLockGraph,
+      'yarn.lock': YarnLockGraph,
+      'package-lock.json': NpmLockGraph
+    }
+    const { name, content, lockPath } = await getProjectLockFile()
+    const LockGraphClass = lockFileClasses[name]
+    if (LockGraphClass) {
+      await processLockFile(LockGraphClass, { name, content, lockPath }, json)
+    } else {
+      console.error('不支持的 lock file 类型：', name)
+    }
+  } else {
+    // 读 node_modules 里面的 packages 的目录/文件，找出依赖关系
+    if (json) {
+      generateAndSaveGraph(depth, json)
+    } else {
+      startApiServer(depth)
+    }
+  }
 }
 
+// 处理解析LockFile的共通部分
+async function processLockFile(lockFileClass, lockFileInfo, json) {
+  const lockParser = new lockFileClass(lockFileInfo)
+  const lockData = await lockParser.parse()
+
+  if (json) {
+    await saveJsonToFile(JSON.stringify(lockData), json)
+  } else {
+    startLockApiServer(lockData)
+  }
+}
+
+// 启动解析LockFile服务器并提供API
 const startLockApiServer = async (data: any) => {
   const app = new Koa()
   const router = new Router()
@@ -89,13 +87,15 @@ const startLockApiServer = async (data: any) => {
 
   router.get('/api/graph', async (ctx: Context, next: () => Promise<void>) => {
     try {
-      const q = getQueryParam(ctx.query, 'q')
+      const searchQuery = getQueryParam(ctx.query, 'searchQuery')
 
       if (data) {
         let { graph, nodeArray } = data
 
-        if (q) {
-          const filteredNodes = nodeArray.filter((node) => node.id.includes(q))
+        if (searchQuery) {
+          const filteredNodes = nodeArray.filter((node) =>
+            node.id.includes(searchQuery)
+          )
           const filteredNodeIds = new Set(filteredNodes.map((node) => node.id))
 
           const filteredEdges = graph.filter(
@@ -130,12 +130,13 @@ const startLockApiServer = async (data: any) => {
     console.log(`app started at port ${PORT}...`)
   })
 
+  // TODO: 打开浏览器(测试关闭)
   await open(`http://localhost:${CLIENT_PORT}/`, {
     app: { name: 'google chrome', arguments: ['--disable-extensions'] }
   })
 }
 
-// 启动服务器提供API
+// 启动服务器并提供API
 const startApiServer = async (depth: number) => {
   const app = new Koa()
   const router = new Router()
@@ -158,14 +159,14 @@ const startApiServer = async (depth: number) => {
 
   router.get('/api/graph', async (ctx: Context, next: () => Promise<void>) => {
     try {
-      const q = getQueryParam(ctx.query, 'q')
+      const searchQuery = getQueryParam(ctx.query, 'searchQuery')
       const pkgDir = await readPkgPath()
 
       const pkg = await getProjectPakcageJson()
 
       const graphBuilder = new DependencyGraphBuilder(pkgDir)
       const data = await graphBuilder.getGraphData({
-        q,
+        searchQuery,
         pkg,
         depth
       })
@@ -192,6 +193,7 @@ const startApiServer = async (depth: number) => {
     console.log(`app started at port ${PORT}...`)
   })
 
+  // TODO: 打开浏览器(测试关闭)
   await open(`http://localhost:${CLIENT_PORT}/`, {
     app: { name: 'google chrome', arguments: ['--disable-extensions'] }
   })
@@ -201,7 +203,6 @@ const startApiServer = async (depth: number) => {
 const generateAndSaveGraph = async (depth: number, json: string) => {
   const pkgDir = await readPkgPath()
   const pkg = await getProjectPakcageJson()
-  console.log('项目的package.json内容:', pkg)
 
   const graphBuilder = new DependencyGraphBuilder(pkgDir)
   const data = await graphBuilder.getGraphData({ pkg, depth })

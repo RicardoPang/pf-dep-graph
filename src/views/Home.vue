@@ -2,12 +2,12 @@
   <div class="home">
     <h2>依赖关系</h2>
     <el-input
-      v-model="q"
+      v-model="searchQuery"
       placeholder="请输入"
       :suffix-icon="Search"
       @change="handleSearch"
     />
-    <Graph :graph="graph" :node-array="nodeArray" />
+    <Graph v-loading="loading" :graph="graph" :node-array="nodeArray" />
   </div>
 </template>
 
@@ -18,16 +18,27 @@ import { Search } from '@element-plus/icons-vue'
 import Graph from '@/components/graph/graph.vue'
 import { storeToRefs } from 'pinia'
 
-const q = ref('')
-const graphStore = useGraphStore()
-graphStore.getGraphDataAction(q.value)
-const { graph, nodeArray } = storeToRefs(graphStore)
-console.log(graph, nodeArray)
+const searchQuery = ref('')
+const loading = ref(false)
 
-const handleSearch = () => {
-  graphStore.getGraphDataAction(q.value)
-  const { graph, nodeArray } = storeToRefs(graphStore)
-  console.log(graph, nodeArray)
+// 获取数据
+const graphStore = useGraphStore()
+loading.value = true
+graphStore.getGraphDataAction(searchQuery.value)
+const { graph, nodeArray } = storeToRefs(graphStore)
+loading.value = false
+
+const handleSearch = async () => {
+  loading.value = true
+  try {
+    await graphStore.getGraphDataAction(searchQuery.value)
+    const { graph, nodeArray } = storeToRefs(graphStore)
+    console.log(graph, nodeArray)
+  } catch (err) {
+    console.log(err)
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

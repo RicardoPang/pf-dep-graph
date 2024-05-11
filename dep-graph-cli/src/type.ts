@@ -17,7 +17,7 @@ export interface INodeArrayProps {
 
 export interface IGetGraphControllerParams {
   // 搜索内容
-  q?: string
+  searchQuery?: string
 }
 
 export type GetGraphControllerResponse = Response<{
@@ -33,7 +33,7 @@ export interface IGetGrapDataOptions {
   // 递归深度
   depth?: number
   // 搜索内容
-  q?: string
+  searchQuery?: string
 }
 
 export interface IDepOptions {
@@ -76,7 +76,7 @@ export interface IBuildGraphOptions {
   // 节点类型
   typeCounter?: number
   // 搜索内容
-  q?: string
+  searchQuery?: string
 }
 
 export interface ILockFileOptions {
@@ -89,5 +89,5 @@ export interface ILockFileOptions {
   // 递归深度
   depth?: number
   // 搜索内容
-  q?: string
+  searchQuery?: string
 }

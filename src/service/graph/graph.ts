@@ -1,8 +1,8 @@
 import type { GetGraphControllerResponse } from '@/types/graph'
 import pfRequest from '..'
 
-export function getGraphData(q?: string) {
+export function getGraphData(searchQuery?: string) {
   return pfRequest.get({
-    url: `/api/graph?q=${q}`
+    url: `/api/graph?searchQuery=${searchQuery}`
   }) as Promise<GetGraphControllerResponse>
 }

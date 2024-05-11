@@ -1,6 +1,8 @@
 ## Node Library 依赖关系分析
 
-### 项目启动
+> 支持拖拽、缩放、hover节点高亮、显示连线关系、搜索等功能
+
+### 一. 项目准备
 
 - 拉取项目
 
@@ -8,135 +10,59 @@
   git clone https://github.com/Devil-Training-Camp/pf-dep-graph.git
   ```
 
-- 执行 npm install
+- 进入当前目录 /pf-dep-graph 执行 __npm install__
 
-  1. 当前目录(前端)执行
+- 进入服务器目录 /pf-dep-graph/dep-graph-cli 执行 __npm install__
 
-  ```bash
-  npm install
-  ```
+  
 
-  2. 进入 dep-graph-cli 目录执行
+### 二. 项目运行（测试/开发）
 
-  ```bash
-  npm install
-  ```
+> 附加：如果没有 dep-graph-cli 命令 可尝试执行 __npm link__ 链接到本地
 
-- 运行项目:
+- 进入当前目录 /pf-dep-graph 执行 npm run dev  浏览器打开链接 http://localhost:5173/
 
-  1. 当前前端目录执行打包
+- 进入服务器目录 /pf-dep-graph/dep-graph-cli 执行__ dep-graph-cli ana__
 
-  ```bash
-  npm run build
-  ```
-
-  命令打包前端项目，生成dist文件
-
-  2. 进入dist目录执行
-
-  ```
-  http-server -p 8080
-  ```
-
-  命令开启服务(模拟)
-
-  3. 新开终端进入 dep-graph-cli 目录执行
+  - 新增了选择：是否希望通过解析lock文件来生成依赖关系图？否则会递归读取node_modules（默认解析锁文件, depth参数无效）
+  - 可选参数：depth递归深度不支持解析lock文件；
 
   ```bash
-  dep-graph-cli ana -d 2
+  Options:
+    -d, --depth <n>         限制向下递归分析的层次深度
+    -j, --json [file-path]  将依赖关系以 JSON 形式存储到指定的文件
+    -h, --help              display help for command
   ```
 
-  如果本地执行dep-graph-cli报错，可以尝试执行
+- 后面可以根据自己的需要进行测试或开发，debugger在需要的地方添加，还是使用这里执行 __dep-graph-cli ana__ 启动
 
-  ```bash
-  sudo npm link
-  ```
+  ![image-20240511115554496](https://p.ipic.vip/wx54nq.png)
 
-  或直接安装线上的npm包 npm i dep-graph-cli
+  
 
-  命令执行后 会在Chrome浏览器启动项目，直接操作即可，支持拖拽、缩放、hover高亮、搜索
+### 三. 使用npm安装cli包
 
-### 附：前后端分别运行
+- 本地运行项目:
 
-- 拉取项目
+  1. 前端项目打包 进入当前目录 /pf-dep-graph 执行 __npm run build__ 生成dist文件
 
-  ```bash
-  git clone https://github.com/Devil-Training-Camp/pf-dep-graph.git
-  ```
+  2. 进入dist目录执行 __http-server -p 8080__ 开启服务(模拟)
 
-- 当前(前端)目录执行
+  3. 在任意项目中打开终端执行 __npm i dep-graph-cli__
+  3. 执行命令 __dep-graph-cli ana__ 就会在谷歌浏览器打开一个前端页面，展示依赖关系
 
-  ```bash
-  npm install
-  ```
 
-- 前端运行
-
-  ```
-  npm run dev
-  ```
-
-- 进入 _dep-graph-cli_ 执行
-
-  ```bash
-  npm install
-  ```
-
-- 后端运行
-
-  ```
-  dep-graph-cli ana -d 2
-  ```
-
-### 附： 在其他项目使用cli
-
-- 拉取项目
-
-  ```bash
-  git clone https://github.com/Devil-Training-Camp/pf-dep-graph.git
-  ```
-
-- 执行npm install
-
-  ```
-  npm install
-  ```
-
-- 打包
-
-  ```
-  npm run build
-  ```
-
-- 进入 dist 目录启动服务
-
-  ```
-  http-server -p 8080
-  ```
-
-- 在自己的项目中安装
-
-  ```
-  npm i dep-graph-cli
-  ```
-
-- 执行cli
-
-  ```
-  dep-graph-cli ana -d 2
-  ```
-
-### 附: 支持 --json=[file-path] 参数，传入后不再打开网页，只是将依赖关系以 JSON 形式存储到用户指定的文件
+### 四. 附: 支持 --json=[file-path] 参数，传入后不再打开网页，只是将依赖关系以 JSON 形式存储到用户指定的文件
 
 ```bash
 dep-graph-cli ana -d 3 -j ./target
 ```
 
-### buildGraph 关键流程
+### 五. buildGraph 关键流程
 
 ![依赖分析](https://p.ipic.vip/6v6let.jpg)
 
-### 新增解析 lock file
+### 六. 新增解析 lock file
 
 > /dep-graph-cli/src/server.ts
 
@@ -187,5 +113,4 @@ export const startServer = async (depth: number, json: string) => {
   //   startApiServer(depth)
   // }
 }
-```js
 ````

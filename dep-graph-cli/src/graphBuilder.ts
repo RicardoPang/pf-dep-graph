@@ -12,10 +12,6 @@ import * as fs from 'fs/promises'
 
 export class DependencyGraphBuilder {
   private visited: Set<string> = new Set()
-  // 首次入参
-  private firstPassParam: boolean = true
-  // 查到对应搜索关键字
-  private foundParam: boolean = true
   // 最大递归深度
   private maxDepth: number = 0
 
@@ -29,14 +25,12 @@ export class DependencyGraphBuilder {
    * @returns 图形数据
    */
   public async getGraphData(options: IGetGrapDataOptions) {
-    const { q, pkg, depth } = options
+    const { searchQuery, pkg, depth } = options
 
     if (isObject(pkg) && !isArray(pkg)) {
       const allDeps = this.getDependency(pkg)
       this.visited.clear()
-      this.maxDepth = depth ?? Infinity
-      this.firstPassParam = true
-      this.foundParam = true
+      this.maxDepth = depth ?? 2
 
       let graphData = await this.buildGraph({
         pkgDir: this.pkgDir,
@@ -44,7 +38,7 @@ export class DependencyGraphBuilder {
         dependencies: allDeps,
         depth: 0,
         typeCounter: 1,
-        q
+        searchQuery
       })
 
       return this.removeDuplicates(graphData.graph, graphData.nodeArray)
@@ -76,11 +70,14 @@ export class DependencyGraphBuilder {
     dependencies,
     depth = 0,
     typeCounter = 1,
-    q
+    searchQuery
   }: IBuildGraphOptions): Promise<{
     graph: IGraphProps[]
     nodeArray: INodeArrayProps[]
   }> {
+    // 情况visited
+    this.visited.clear()
+
     // 初始化graph和nodeArray
     const graph: IGraphProps[] = []
     const nodeArray: INodeArrayProps[] = []
@@ -100,18 +97,12 @@ export class DependencyGraphBuilder {
       }
       this.visited.add(curDep)
 
-      // 首次有传入参数 参数和当前依赖相同 加入节点
-      if (q == dep && this.firstPassParam) {
-        nodeArray.push({ id: dep, group: typeCounter })
-        this.firstPassParam = false
-      }
       // 查询对应的搜索条件
-      if (q == source && this.foundParam) {
-        this.visited.clear()
-        this.foundParam = false
+      if (searchQuery == dep) {
+        nodeArray.push({ id: dep, group: typeCounter })
       }
       // 没有传入参数, 传入参数且传入参数与父依赖相同
-      if (q === undefined || q === source) {
+      if (searchQuery === undefined || searchQuery === source) {
         // 将依赖加入图
         if (source) {
           graph.push({
@@ -143,7 +134,7 @@ export class DependencyGraphBuilder {
         dependencies: childDeps,
         depth: depth + 1,
         typeCounter: typeCounter,
-        q: q === dep ? dep : q
+        searchQuery: searchQuery === dep ? dep : searchQuery
       })
 
       // 合并下一层返回的graph和nodeArray到当前层 确保当前层的数据包含了下一层的结果
@@ -196,6 +187,9 @@ export class DependencyGraphBuilder {
 
   // 获取依赖文件夹路径
   private getDepFolderPath(baseDir: string, dep: string) {
+    // 两种方式
+    // 读 node_modules 里面的 packages 的目录/文件，找出依赖关系(当前)
+    // 解析 lock file，需要兼容 npm/yarn/pnpm
     const nodeModulesDir = baseDir.includes('node_modules')
       ? baseDir.substring(
           0,

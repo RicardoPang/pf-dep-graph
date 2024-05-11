@@ -36,12 +36,11 @@ const parseFromSpecify = (specifier: string) => {
 }
 
 export class YarnLockGraph extends baseDepGraph {
-  private content: IDepOptions
+  private content: string
 
   constructor(options: ILockFileOptions) {
     super()
-    const { content } = options
-    this.content = content
+    this.content = options.content
   }
 
   async parse(): Promise<IGraphData> {
@@ -53,7 +52,6 @@ export class YarnLockGraph extends baseDepGraph {
     const graph: IGraphProps[] = []
     const nodeSet = new Set<string>()
     const packages = parsedYarnFile.object as Record<string, IYarnFileEntry>
-    console.log('packages', packages)
 
     for (const [key, value] of Object.entries(packages)) {
       const { name } = parseFromSpecify(key)
