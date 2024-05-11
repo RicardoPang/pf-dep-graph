@@ -32,7 +32,7 @@ export class DependencyGraphBuilder {
       this.visited.clear()
       this.maxDepth = depth ?? 2
 
-      let graphData = await this.buildGraph({
+      const graphData = await this.buildGraph({
         pkgDir: this.pkgDir,
         source: undefined,
         dependencies: allDeps,

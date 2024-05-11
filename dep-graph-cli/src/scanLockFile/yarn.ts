@@ -1,6 +1,5 @@
 import * as lockfile from '@yarnpkg/lockfile'
 import {
-  IDepOptions,
   IGraphData,
   IGraphProps,
   ILockFileOptions,
