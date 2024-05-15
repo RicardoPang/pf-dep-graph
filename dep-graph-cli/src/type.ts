@@ -79,15 +79,15 @@ export interface IBuildGraphOptions {
   searchQuery?: string
 }
 
+// lock file 解析返回内容
 export interface ILockFileOptions {
-  // 依赖包
   name: string
-  // 依赖包内容
   content: any
-  // 依赖包路径
   lockPath: string
-  // 递归深度
-  depth?: number
-  // 搜索内容
-  searchQuery?: string
+}
+
+export interface ILockFileParser {
+  new (options: ILockFileOptions): {
+    parse: () => Promise<IGraphData>
+  }
 }

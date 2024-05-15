@@ -1,3 +1,4 @@
+// 解析yarn工具
 import * as lockfile from '@yarnpkg/lockfile'
 import {
   IGraphData,
@@ -15,8 +16,12 @@ interface IYarnFileEntry {
 }
 
 const parseFromSpecify = (specifier: string) => {
+  // 正则: 匹配yarn文件的包描述
+  // @scope/package@version 第一个捕获作用域包名 第二个捕获version
+  // package@version 第一个捕获包名 第二个捕获version
   const REGEXP = /^((?:@[^/]+\/)?[^@/]+)@(.+)$/
   const match = specifier.match(REGEXP)
+  // 匹配成功, 返回包名、版本信息
   if (match) {
     const [, name, , localVersion, version] = match
     return {
@@ -35,7 +40,7 @@ const parseFromSpecify = (specifier: string) => {
 }
 
 export class YarnLockGraph extends baseDepGraph {
-  private content: string
+  private content: string // lock file 内容
 
   constructor(options: ILockFileOptions) {
     super()
@@ -43,25 +48,33 @@ export class YarnLockGraph extends baseDepGraph {
   }
 
   async parse(): Promise<IGraphData> {
+    // 使用yarn工具解析yarn.lock
     const parsedYarnFile = lockfile.parse(this.content)
     if (parsedYarnFile.type !== 'success') {
       throw new Error('解析yarn.lock文件失败')
     }
 
+    // 初始化依赖图和节点数组
     const graph: IGraphProps[] = []
     const nodeSet = new Set<string>()
+
+    // lock file 报数据
     const packages = parsedYarnFile.object as Record<string, IYarnFileEntry>
 
     for (const [key, value] of Object.entries(packages)) {
+      // 解析包名
       const { name } = parseFromSpecify(key)
+      // 添加节点
       nodeSet.add(name)
 
+      // 如果包有依赖, 添加依赖关系到图中
       if (value.dependencies) {
         for (const [depName] of Object.entries(value.dependencies)) {
           graph.push({
             source: name,
             target: depName
           })
+          // 通用添加依赖的包到节点
           nodeSet.add(depName)
         }
       }

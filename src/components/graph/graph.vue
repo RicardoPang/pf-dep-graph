@@ -1,5 +1,6 @@
 <template>
   <div class="graph-wrapper">
+    <!-- 容器 -->
     <div ref="chart"></div>
   </div>
 </template>
@@ -21,30 +22,37 @@ const props = defineProps({
   }
 })
 
+// 存储SVG元素
 const chart = ref<SVGSVGElement | null>(null)
+// 存储d3力导向图模拟
 let simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>
 
+// 渲染图表
 const renderChart = (convertedData: { nodes: any[]; links: any[] }) => {
   if (!chart.value) {
     return
   }
 
-  // 清空
+  // 清空图表容器
   chart.value.innerHTML = ''
+
   // 模拟会改变链接和节点 创建一个副本
-  const links = convertedData.links.map((d) => ({ ...d }))
-  const nodes = convertedData.nodes.map((d) => ({ ...d }))
+  const links = convertedData.links.map((d) => ({ ...d })) // 创建链接副本
+  const nodes = convertedData.nodes.map((d) => ({ ...d })) // 创建节点副本
 
   // 定义图表的尺寸
   const width = 928
   const height = 600
-  // 定义颜色
+
+  // 定义颜色比例尺
   const color = d3.scaleOrdinal(d3.schemeCategory10)
+
   // 定义缩放
   const zoom = d3
     .zoom()
     .scaleExtent([1, 10]) // 设置缩放范围，1 表示原始大小，10 表示最大放大为原始大小的10倍
     .on('zoom', (d3: any) => zoomed(d3))
+
   // 创建svg容器
   const svg = d3
     .create('svg')
@@ -53,7 +61,8 @@ const renderChart = (convertedData: { nodes: any[]; links: any[] }) => {
     .attr('viewBox', [0, 0, width, height])
     .attr('style', 'max-width: 100%; height: auto;')
     .call(zoom as d3.ZoomBehavior<any, any>)
-  // 为每个链接添加一条线，为每个节点添加一个圆
+
+  // 创建连接线
   const link = svg
     .append('g')
     .selectAll('line')
@@ -63,8 +72,10 @@ const renderChart = (convertedData: { nodes: any[]; links: any[] }) => {
     .attr('stroke', '#999')
     .attr('stroke-opacity', 0.6)
     .attr('fill', 'none')
-    .on('mouseover', handleLinkMouseOver)
-    .on('mouseout', handleLinkMouseOut)
+    .on('mouseover', handleLinkMouseOver) // 添加鼠标移入事件
+    .on('mouseout', handleLinkMouseOut) // 添加鼠标移出事件
+
+  // 创建节点
   const node = svg
     .append('g')
     .attr('fill', 'currentColor')
@@ -77,12 +88,14 @@ const renderChart = (convertedData: { nodes: any[]; links: any[] }) => {
     .attr('fill', (d) => color(String(d.group)))
     .style('cursor', 'pointer')
     .style('position', 'relative')
-    .call(drag() as any)
-    .on('mouseover', handleMouseOver)
-    .on('mouseout', handleMouseOut)
-  // node.append('title').text((d) => d.id)
+    .call(drag() as any) // 添加拖动事件
+    .on('mouseover', handleMouseOver) // 添加鼠标移入事件
+    .on('mouseout', handleMouseOut) // 添加鼠标移出事件
+
+  // 将SVG添加到容器
   chart.value.appendChild(svg.node()!)
 
+  // 链接鼠标移入事件
   function handleLinkMouseOver(event: MouseEvent, d: any) {
     // 移除旧的tooltip
     d3.select('.custom-link-tooltip').remove()
@@ -114,6 +127,7 @@ const renderChart = (convertedData: { nodes: any[]; links: any[] }) => {
       .style('box-shadow', '2px 2px 6px rgba(0, 0, 0, 0.1)')
   }
 
+  // 链接鼠标移出事件
   function handleLinkMouseOut() {
     d3.select('.custom-link-tooltip').remove()
   }
@@ -239,6 +253,7 @@ const renderChart = (convertedData: { nodes: any[]; links: any[] }) => {
     .on('tick', ticked)
 }
 
+// 数据转换
 const convertData = (graph: IGraphProps[], nodeArray: INodeArrayProps[]) => {
   const links = graph.map((link) => ({
     source: link.source,
@@ -251,7 +266,6 @@ const convertData = (graph: IGraphProps[], nodeArray: INodeArrayProps[]) => {
     group: node.group ?? 1
   }))
 
-  console.log(nodes, links)
   return { nodes, links }
 }
 
@@ -268,11 +282,15 @@ let convertedData: {
 }
 
 watchEffect(() => {
+  // 确保 graph 和 nodeArray 有值后再进行渲染
+  // 监测数据变化
+  // debugger
   convertedData = convertData(props.graph, props.nodeArray)
   renderChart(convertedData)
 })
 
 onMounted(() => {
+  // 确保组件挂载后再进行渲染
   renderChart(convertedData)
 })
 </script>

@@ -23,7 +23,7 @@ export const main = async () => {
 
     cmd.action((cmdObj) => {
       if (action === '*') {
-        console.log('未找到命令')
+        console.log('没有找到对应的命令')
       } else {
         inquirer
           .prompt({
@@ -53,5 +53,8 @@ export const main = async () => {
   })
 
   // 动态获取版本号放到配置指令命令下
+  // parse解析命令行参数
+  // process.argv[0]是Node.js进程的可执行文件路径
+  // process.argv[1]是当前执行的JavaScript文件的路径
   program.version(version).parse(process.argv)
 }

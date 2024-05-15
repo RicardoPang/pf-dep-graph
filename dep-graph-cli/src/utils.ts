@@ -1,11 +1,15 @@
 import path from 'path'
 import fs from 'fs/promises'
+import { ILockFileOptions } from './type'
 
+// 项目根目录
 const projectRoot = process.cwd()
 
 // 读取package.json
-export async function getProjectPakcageJson() {
-  const packageJsonPath = path.join(projectRoot, 'package.json')
+export async function getProjectPakcageJson(packageJsonPath?: string) {
+  if (!packageJsonPath) {
+    packageJsonPath = path.join(projectRoot, 'package.json')
+  }
   try {
     const packageJsonRaw = await fs.readFile(packageJsonPath, 'utf-8')
     const packageJson = JSON.parse(packageJsonRaw)
@@ -16,18 +20,18 @@ export async function getProjectPakcageJson() {
   }
 }
 
-export async function getProjectLockFile(): Promise<{
-  name: string
-  content: any
-  lockPath: string
-}> {
+// 获取项目锁文件内容, 并根据锁文件类型选择相应的处理类进行处理
+export async function getProjectLockFile(): Promise<
+  ILockFileOptions | undefined
+> {
+  // 定义需要检查的锁文件列表
   const lockFiles = ['pnpm-lock.yaml', 'yarn.lock', 'package-lock.json']
   try {
     for (const lockFile of lockFiles) {
-      const lockFilePath = path.join(projectRoot, lockFile)
       try {
-        const lockFileContent = await fs.readFile(lockFilePath, 'utf-8')
+        // 读取锁文件内容和锁文件路径
         const lockPath = await readPkgPath(lockFile)
+        const lockFileContent = await fs.readFile(lockPath, 'utf-8')
         return { name: lockFile, content: lockFileContent, lockPath }
       } catch (error) {
         if (error.code !== 'ENOENT') {
@@ -37,10 +41,8 @@ export async function getProjectLockFile(): Promise<{
       }
     }
 
-    const packageJsonPath = path.join(projectRoot, 'package.json')
-    const packageJsonContent = await fs.readFile(packageJsonPath, 'utf-8')
-    const lockPath = await readPkgPath()
-    return { name: 'package.json', content: packageJsonContent, lockPath }
+    // 如果没有找到合适的锁文件，返回 undefined
+    return undefined
   } catch (error) {
     console.error('读取文件时发生错误:', error)
     throw error
@@ -49,7 +51,7 @@ export async function getProjectLockFile(): Promise<{
 
 // 配置信息路径
 export const readPkgPath = async (suffix = 'package.json'): Promise<string> => {
-  const filePath = path.join(__dirname, '..', suffix)
+  const filePath = path.join(projectRoot, suffix)
   return filePath
 }
 

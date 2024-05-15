@@ -11,42 +11,48 @@ import * as path from 'path'
 import * as fs from 'fs/promises'
 
 export class DependencyGraphBuilder {
+  // 记录已访问过的依赖, 避免重复处理
   private visited: Set<string> = new Set()
-  // 最大递归深度
+  // 最大递归深度, 限制依赖搜索的深度
   private maxDepth: number = 0
 
   constructor(private pkgDir: string) {
+    // 接收包目录路径
     this.pkgDir = pkgDir
   }
 
   /**
    * 获取依赖包及其依赖项的图形数据
-   * @param options 包含查询,包,深度
-   * @returns 图形数据
+   * @param options 查询条件, 包含查询条件, 包信息, 深度
+   * @returns 图形数据, 包含依赖关系图和节点数组
    */
   public async getGraphData(options: IGetGrapDataOptions) {
     const { searchQuery, pkg, depth } = options
 
     if (isObject(pkg) && !isArray(pkg)) {
-      const allDeps = this.getDependency(pkg)
-      this.visited.clear()
-      this.maxDepth = depth ?? 2
+      const allDeps = this.getDependency(pkg) // 获取所有依赖项
+      this.visited.clear() // 清空已访问依赖项
+      this.maxDepth = depth ?? 2 // 设置最大递归深度, 默认为 2
 
+      // 构建依赖关系图
       const graphData = await this.buildGraph({
         pkgDir: this.pkgDir,
-        source: undefined,
+        source: undefined, // 当前源依赖未定义
         dependencies: allDeps,
-        depth: 0,
+        depth: 0, // 初始化深度为 0
         typeCounter: 1,
         searchQuery
       })
 
+      // 返回去重后的数据
       return this.removeDuplicates(graphData.graph, graphData.nodeArray)
     }
 
+    // 传入的依赖包不是有效的对象
     throw new Error('依赖包无效')
   }
 
+  // 获取依赖项, 包括生产依赖和开发依赖
   private getDependency(pkg: IDepOptions) {
     return {
       ...pkg.dependencies,
@@ -60,9 +66,9 @@ export class DependencyGraphBuilder {
    * @param source 依赖包名称
    * @param dependencies 依赖包依赖
    * @param depth 递归深度
-   * @param typeCounter 节点类型
-   * @param q 搜索关键字
-   * @returns 构建后的图
+   * @param typeCounter 节点类型计数器, 用于分组
+   * @param q 搜索查询条件
+   * @returns 构建后的依赖关系图和节点数组
    */
   private async buildGraph({
     pkgDir,
@@ -75,33 +81,34 @@ export class DependencyGraphBuilder {
     graph: IGraphProps[]
     nodeArray: INodeArrayProps[]
   }> {
-    // 情况visited
+    // 清空已访问记录
     this.visited.clear()
 
-    // 初始化graph和nodeArray
+    // 初始化依赖关系图和节点数组
     const graph: IGraphProps[] = []
     const nodeArray: INodeArrayProps[] = []
 
-    // 设置跳出递归条件 超过将当前层的graph和nodeArray返回给调用者
+    // 如果以达到最大递归深度, 停止递归并返回当前结果
     if (depth > this.maxDepth) {
       return { graph, nodeArray }
     }
+
     // 遍历当前层依赖项
     for (const dep in dependencies) {
-      // 格式化
+      // 格式化依赖项名称
       const curDep = dep + dependencies[dep].replace('^', '@')
 
-      // 检查已访问集合，可能跳过依赖项
+      // 检查是否已处理过该依赖项, 如果是, 则跳过
       if (this.visited.has(curDep)) {
         continue
       }
-      this.visited.add(curDep)
+      this.visited.add(curDep) // 标记为已处理
 
-      // 查询对应的搜索条件
+      // 如果搜索条件匹配当前依赖项就添加到节点数组
       if (searchQuery == dep) {
         nodeArray.push({ id: dep, group: typeCounter })
       }
-      // 没有传入参数, 传入参数且传入参数与父依赖相同
+      // 如果没有搜索条件或搜索条件与源依赖相同, 则处理当前依赖项
       if (searchQuery === undefined || searchQuery === source) {
         // 将依赖加入图
         if (source) {
@@ -155,6 +162,7 @@ export class DependencyGraphBuilder {
    */
   private async checkFile(depPkgPath: string): Promise<ICheckFileResult> {
     try {
+      // stat描述文件或目录的信息, 如大小、修改时间等
       const stats = await fs.stat(depPkgPath)
       // 检查是否是文件
       if (stats.isFile()) {
@@ -176,6 +184,7 @@ export class DependencyGraphBuilder {
 
   // 去重
   private removeDuplicates(graph: IGraphProps[], nodeArray: INodeArrayProps[]) {
+    // 使用Map结构去重数组
     const uniqueGraph = Array.from(
       new Map(graph.map((item) => [item.source + item.target, item])).values()
     )
@@ -187,9 +196,8 @@ export class DependencyGraphBuilder {
 
   // 获取依赖文件夹路径
   private getDepFolderPath(baseDir: string, dep: string) {
-    // 两种方式
-    // 读 node_modules 里面的 packages 的目录/文件，找出依赖关系(当前)
-    // 解析 lock file，需要兼容 npm/yarn/pnpm
+    // 判断baseDir是否已经是node_modules路径, 如果是直接用
+    // 否则解析相对路径获取node_modules目录
     const nodeModulesDir = baseDir.includes('node_modules')
       ? baseDir.substring(
           0,
@@ -197,11 +205,13 @@ export class DependencyGraphBuilder {
         )
       : path.join(path.dirname(require.resolve(baseDir)), 'node_modules')
 
+    // 拼接获取以来的实际路径
     return path.join(nodeModulesDir, dep)
   }
 
   // 获取依赖包路径
   private getDepPkgPath(baseDir: string, dependency: string): string {
+    // 获取依赖文件夹路径, 并拼接package.json获取完整依赖包json文件路径
     return path.join(this.getDepFolderPath(baseDir, dependency), 'package.json')
   }
 }
