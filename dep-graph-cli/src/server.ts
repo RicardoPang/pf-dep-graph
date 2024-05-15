@@ -32,7 +32,6 @@ export const startServer = async (
   json: string,
   isParseLockFile: boolean
 ) => {
-  debugger
   // 解析锁文件(isParseLockFile 为 true)
   if (isParseLockFile) {
     // 定义不同锁文件类型对应的处理类
@@ -126,7 +125,6 @@ const startApiServer = async (
       let graph: IGraphProps[] = []
       let nodeArray: INodeArrayProps[] = []
 
-      debugger
       // 根据isParseLockFile参数判断是否解析锁文件
       if (isParseLockFile) {
         graph = lockData.graph

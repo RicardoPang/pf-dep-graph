@@ -13,7 +13,7 @@ const parseFromSpecify = (specifier: string) => {
   // 正则: 匹配pnpm文件的包描述
   // /@vue/cli-service/4.5.13_vue@cli-service@4.5.13
   // 全局作用域@vue 包名cli-service 版本4.5.13 额外_vue@cli-service@4.5.13
-  const REGEXP = /^\/(@?[\w\-\d\.]+(\/[\w\-\d\.]+)?)\/(([\d\w\.\-]+)(.+)?)/
+  const REGEXP = /^\/(@?[\w\-\d\\.]+(\/[\w\-\d\\.]+)?)\/(([\d\w\\.\\-]+)(.+)?)/
   const match = specifier.match(REGEXP)
   if (match) {
     const [, name, , localVersion, version] = match
