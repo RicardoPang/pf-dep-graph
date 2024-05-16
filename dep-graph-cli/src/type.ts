@@ -91,3 +91,9 @@ export interface ILockFileParser {
     parse: () => Promise<IGraphData>
   }
 }
+
+export interface IPackageInfo {
+  name: string
+  specifier: string
+  version: string
+}

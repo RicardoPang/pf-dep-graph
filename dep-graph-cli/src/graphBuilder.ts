@@ -67,7 +67,7 @@ export class DependencyGraphBuilder {
    * @param dependencies 依赖包依赖
    * @param depth 递归深度
    * @param typeCounter 节点类型计数器, 用于分组
-   * @param q 搜索查询条件
+   * @param searchQuery 搜索查询条件
    * @returns 构建后的依赖关系图和节点数组
    */
   private async buildGraph({

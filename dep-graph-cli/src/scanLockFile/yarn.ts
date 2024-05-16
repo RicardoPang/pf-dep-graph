@@ -4,7 +4,8 @@ import {
   IGraphData,
   IGraphProps,
   ILockFileOptions,
-  INodeArrayProps
+  INodeArrayProps,
+  IPackageInfo
 } from '../type'
 import { baseDepGraph } from './base'
 
@@ -13,9 +14,11 @@ interface IYarnFileEntry {
   resolved?: string
   integrity?: string
   dependencies?: Record<string, string>
+  peerDependencies?: Record<string, string>
+  optionalDependencies?: Record<string, string>
 }
 
-const parseFromSpecify = (specifier: string) => {
+const parseFromSpecify = (specifier: string): IPackageInfo => {
   // 正则: 匹配yarn文件的包描述
   // @scope/package@version 第一个捕获作用域包名 第二个捕获version
   // package@version 第一个捕获包名 第二个捕获version
@@ -23,18 +26,16 @@ const parseFromSpecify = (specifier: string) => {
   const match = specifier.match(REGEXP)
   // 匹配成功, 返回包名、版本信息
   if (match) {
-    const [, name, , localVersion, version] = match
+    const [, name, version] = match
     return {
       name,
       specifier,
-      localVersion,
       version
     }
   }
   return {
     name: '',
     specifier,
-    localVersion: '',
     version: ''
   }
 }
@@ -64,12 +65,19 @@ export class YarnLockGraph extends baseDepGraph {
     for (const [key, value] of Object.entries(packages)) {
       // 解析包名
       const { name } = parseFromSpecify(key)
+      // 如果包名解析失败 跳过
+      if (!name) continue
+
       // 添加节点
       nodeSet.add(name)
 
       // 如果包有依赖, 添加依赖关系到图中
       if (value.dependencies) {
-        for (const [depName] of Object.entries(value.dependencies)) {
+        for (const [depName] of Object.entries({
+          ...value.dependencies,
+          ...value.peerDependencies,
+          ...value.optionalDependencies
+        })) {
           graph.push({
             source: name,
             target: depName

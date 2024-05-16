@@ -284,7 +284,6 @@ let convertedData: {
 watchEffect(() => {
   // 确保 graph 和 nodeArray 有值后再进行渲染
   // 监测数据变化
-  // debugger
   convertedData = convertData(props.graph, props.nodeArray)
   renderChart(convertedData)
 })

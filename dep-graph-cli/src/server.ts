@@ -104,7 +104,7 @@ const startApiServer = async (
     ctx.set('Access-Control-Allow-Headers', '*') // 允许所有请求头
     // 预检请求
     if (ctx.request.method === 'OPTIONS') {
-      ctx.status = 200
+      ctx.status = 0
       ctx.body = 'success'
       return
     }
@@ -136,10 +136,10 @@ const startApiServer = async (
           const filteredNodes = nodeArray.filter((node) =>
             node.id.includes(searchQuery)
           )
-          // 将筛选出的节点根据id创建Set, 用于后续过滤边
+          // 将筛选出的节点根据id创建Set, 用于后续过滤graph
           const filteredNodeIds = new Set(filteredNodes.map((node) => node.id))
 
-          // 筛选包含关键字的边
+          // 筛选包含关键字的边 边的source和target必须在filteredNodeIds中
           const filteredEdges = graph.filter(
             (edge) =>
               filteredNodeIds.has(edge.source) &&
