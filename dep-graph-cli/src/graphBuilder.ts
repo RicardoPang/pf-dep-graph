@@ -23,7 +23,7 @@ export class DependencyGraphBuilder {
 
   /**
    * 获取依赖包及其依赖项的图形数据
-   * @param options 查询条件, 包含查询条件, 包信息, 深度
+   * @param options 包含查询条件, 包信息, 深度
    * @returns 图形数据, 包含依赖关系图和节点数组
    */
   public async getGraphData(options: IGetGrapDataOptions) {

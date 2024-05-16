@@ -11,6 +11,7 @@ interface IPackageLock {
     [path: string]: {
       version: string
       dependencies?: { [packageName: string]: string }
+      devDependencies?: { [packageName: string]: string }
       optionalDependencies?: { [packageName: string]: string }
       peerDependencies?: { [packageName: string]: string }
       dev?: boolean
@@ -42,35 +43,47 @@ export class NpmLockGraph extends baseDepGraph {
     // 使用Map确保节点数组中包名唯一
     const nodeArrayMap: Map<string, INodeArrayProps> = new Map()
 
-    for (const [pkgPath, pkgDetails] of Object.entries(packages)) {
-      if (!pkgPath) continue
+    // 统一遍历所有类型的依赖关系
+    const addDependencies = (
+      pkgName: string,
+      dependencies?: { [packageName: string]: string }
+    ) => {
+      if (dependencies) {
+        for (const depName of Object.keys(dependencies)) {
+          graph.push({
+            source: pkgName,
+            target: depName
+          })
+          if (!nodeArrayMap.has(depName)) {
+            nodeArrayMap.set(depName, {
+              id: depName
+            })
+          }
+        }
+      }
+    }
 
-      // 从路径提取包名, 去掉node_modules前缀
-      const pkgName = pkgPath.replace(/^node_modules\//, '')
-      // 如果不存在 将包名添加到节点数组
-      if (!nodeArrayMap.has(pkgName)) {
-        nodeArrayMap.set(pkgName, {
-          id: pkgName
+    // 遍历所有包
+    for (const [pkgPath, pkgDetails] of Object.entries(packages)) {
+      // 如果路径为空，表示是项目自身
+      const pkgName = pkgPath
+        ? pkgPath.replace(/^node_modules\//, '')
+        : parsedLock.packages[''].name
+
+      // 确保节点数组中包含当前包
+      if (!nodeArrayMap.has(pkgName!)) {
+        nodeArrayMap.set(pkgName!, {
+          id: pkgName!
         })
       }
 
-      // 统一遍历所有类型的依赖关系
-      for (const [depName] of Object.entries({
-        ...pkgDetails.dependencies,
-        ...pkgDetails.optionalDependencies,
-        ...pkgDetails.peerDependencies
-      })) {
-        // 把依赖关系添加到依赖图中
-        graph.push({
-          source: pkgName, // 依赖来源是当前包名
-          target: depName
-        })
-        // 确保依赖包也在节点数组中
-        if (!nodeArrayMap.has(depName)) {
-          nodeArrayMap.set(depName, {
-            id: depName
-          })
-        }
+      // 处理所有类型的依赖关系
+      addDependencies(pkgName!, pkgDetails.dependencies)
+      addDependencies(pkgName!, pkgDetails.optionalDependencies)
+      addDependencies(pkgName!, pkgDetails.peerDependencies)
+      if (!pkgPath) {
+        // 顶层对象需要解析 devDependencies
+        addDependencies(pkgName!, pkgDetails.devDependencies)
       }
     }
 

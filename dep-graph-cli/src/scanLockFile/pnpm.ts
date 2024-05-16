@@ -9,7 +9,7 @@ import {
 } from '../type'
 import { baseDepGraph } from './base'
 
-// 解析报名和版本信息
+// 解析包名和版本信息
 const parseFromSpecify = (specifier: string): IPackageInfo => {
   // 正则: 匹配pnpm文件的包描述
   const REGEXP = /^\/(@?[\w\-./]+)\/([\w\-./]+)$/
@@ -63,14 +63,13 @@ export class PnpmLockGraph extends baseDepGraph {
     if (importers) {
       for (const [
         importerName,
-        { dependencies = {}, devDependencies = {}, optionalDependencies = {} }
+        { dependencies = {}, devDependencies = {} }
       ] of Object.entries(importers)) {
         nodeSet.add(importerName) // 添加导入节点
 
         for (const [depName] of Object.entries({
           ...dependencies,
-          ...devDependencies,
-          ...optionalDependencies
+          ...devDependencies
         })) {
           graph.push({
             source: importerName, // 依赖源

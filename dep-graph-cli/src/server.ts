@@ -32,6 +32,7 @@ export const startServer = async (
   json: string,
   isParseLockFile: boolean
 ) => {
+  debugger
   // 解析锁文件(isParseLockFile 为 true)
   if (isParseLockFile) {
     // 定义不同锁文件类型对应的处理类
@@ -125,6 +126,7 @@ const startApiServer = async (
       let graph: IGraphProps[] = []
       let nodeArray: INodeArrayProps[] = []
 
+      debugger
       // 根据isParseLockFile参数判断是否解析锁文件
       if (isParseLockFile) {
         graph = lockData.graph
@@ -194,9 +196,9 @@ const startApiServer = async (
   })
 
   // TODO: 打开浏览器(测试关闭)
-  await open(`http://localhost:${CLIENT_PORT}/`, {
-    app: { name: 'google chrome', arguments: ['--disable-extensions'] }
-  })
+  // await open(`http://localhost:${CLIENT_PORT}/`, {
+  //   app: { name: 'google chrome', arguments: ['--disable-extensions'] }
+  // })
 }
 
 // 生成依赖关系图并保存到文件
