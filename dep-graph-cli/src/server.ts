@@ -32,6 +32,7 @@ export const startServer = async (
   json: string,
   isParseLockFile: boolean
 ) => {
+  // debugger
   // 解析锁文件(isParseLockFile 为 true)
   if (isParseLockFile) {
     // 定义不同锁文件类型对应的处理类
@@ -125,6 +126,7 @@ const startApiServer = async (
       let graph: IGraphProps[] = []
       let nodeArray: INodeArrayProps[] = []
 
+      // debugger
       // 根据isParseLockFile参数判断是否解析锁文件
       if (isParseLockFile) {
         graph = lockData.graph
@@ -140,12 +142,13 @@ const startApiServer = async (
           const filteredNodeIds = new Set(filteredNodes.map((node) => node.id))
 
           // 筛选包含关键字的边 边的source和target必须在filteredNodeIds中
+          // 过滤出连接 filteredNodes 节点的边
           const filteredEdges = graph.filter(
             (edge) =>
               filteredNodeIds.has(edge.source) &&
               filteredNodeIds.has(edge.target)
           )
-          // 包含相关联的节点的id
+          // 提取所有与 filteredEdges 相关联的节点 id
           const relatedNodesIds = new Set(
             filteredEdges.flatMap((edge) => [edge.source, edge.target])
           )

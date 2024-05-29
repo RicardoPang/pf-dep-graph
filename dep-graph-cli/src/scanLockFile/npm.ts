@@ -36,6 +36,8 @@ export class NpmLockGraph extends baseDepGraph {
     // 解析为JSON对象
     const parsedLock = JSON.parse(this.content) as IPackageLock
     // 结构获取packages对象
+    // {name: 'pf-dep-graph', version: '0.0.0', dependencies: {}, devDependencies: {}}
+    // "node_modules/@babel/code-frame": {"version": "7.23.5","dependencies": {}}
     const { packages } = parsedLock
 
     // 初始化依赖图

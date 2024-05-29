@@ -10,12 +10,14 @@ import {
 import { baseDepGraph } from './base'
 
 // 解析包名和版本信息
+// @antfu/utils@0.7.8:{resolution: {…}}
+// @babel/code-frame@7.24.6:{resolution: {…}, engines: {…}}
 const parseFromSpecify = (specifier: string): IPackageInfo => {
   // 正则: 匹配pnpm文件的包描述
-  const REGEXP = /^\/(@?[\w\-./]+)\/([\w\-./]+)$/
+  const REGEXP = /^\/(@?[\w\d.-]+(\/[\w\d.-]+)?)\/([\d\w.-]+)(\/?.*)$/
   const match = specifier.match(REGEXP)
   if (match) {
-    const [, name, version] = match
+    const [, name, , version] = match
     return {
       name, // 包名
       specifier, // 完整描述

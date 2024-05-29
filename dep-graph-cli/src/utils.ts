@@ -56,9 +56,14 @@ export const readPkgPath = async (suffix = 'package.json'): Promise<string> => {
 }
 
 // 配置信息
-export const readPackageJson = async (): Promise<any> => {
+export const readPackageJson = async (path?: string): Promise<any> => {
   try {
-    const filePath = await readPkgPath()
+    let filePath = ''
+    if (path) {
+      filePath = path
+    } else {
+      filePath = await readPkgPath()
+    }
     const pkg = await fs.readFile(filePath, 'utf-8')
     return JSON.parse(pkg)
   } catch (error) {
@@ -69,7 +74,8 @@ export const readPackageJson = async (): Promise<any> => {
 
 // 读取版本号
 export const readVersion = async (): Promise<string> => {
-  const packageJson = await readPackageJson()
+  const pkgPath = path.join(__dirname, '../package.json')
+  const packageJson = await readPackageJson(pkgPath)
   return packageJson?.version || ''
 }
 
@@ -94,7 +100,7 @@ export const mapActions = {
   analyze: {
     alias: 'ana',
     description: '分析模块依赖关系',
-    examples: ['dep-graph-cli analyze <lockFilename>'],
+    examples: ['dep-graph-cli analyze'],
     options: [
       {
         flag: '-d, --depth <n>',

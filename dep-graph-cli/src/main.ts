@@ -21,23 +21,20 @@ export const main = async () => {
       })
     }
 
-    cmd.action((cmdObj) => {
+    cmd.action(async (cmdObj) => {
       if (action === '*') {
         console.log('没有找到对应的命令')
       } else {
-        inquirer
-          .prompt({
-            type: 'confirm',
-            name: 'isParseLockFile',
-            message:
-              '是否希望通过解析lock文件来生成依赖关系图？否则会递归读取node_modules（默认解析锁文件, depth参数无效）',
-            default: true
-          })
-          .then((answers) => {
-            const { depth, json } = cmdObj
-            const { isParseLockFile } = answers
-            startServer(depth, json, isParseLockFile)
-          })
+        const answers = await inquirer.prompt({
+          type: 'confirm',
+          name: 'isParseLockFile',
+          message:
+            '是否希望通过解析lock文件来生成依赖关系图？否则会递归读取node_modules（默认解析锁文件, depth参数无效）',
+          default: true
+        })
+        const { depth, json } = cmdObj
+        const { isParseLockFile } = answers
+        startServer(depth, json, isParseLockFile)
       }
     })
   })

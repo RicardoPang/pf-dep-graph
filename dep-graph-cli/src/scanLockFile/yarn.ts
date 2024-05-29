@@ -18,6 +18,8 @@ interface IYarnFileEntry {
   optionalDependencies?: Record<string, string>
 }
 
+// {@antfu/utils@^0.7.6: {…}, @antfu/utils@^0.7.8: {…}, @babel/code-frame@^7.0.0: {…}}
+// 'yargs@^17.0.0': { version: '17.7.2', dependencies: {} }
 const parseFromSpecify = (specifier: string): IPackageInfo => {
   // 正则: 匹配yarn文件的包描述
   // @scope/package@version 第一个捕获作用域包名 第二个捕获version
@@ -26,7 +28,8 @@ const parseFromSpecify = (specifier: string): IPackageInfo => {
   const match = specifier.match(REGEXP)
   // 匹配成功, 返回包名、版本信息
   if (match) {
-    const [, name, version] = match
+    let [, name, version] = match
+    version = version.replace(/^\^/, '')
     return {
       name,
       specifier,
