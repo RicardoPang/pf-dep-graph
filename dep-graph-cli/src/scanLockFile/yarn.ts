@@ -28,7 +28,7 @@ const parseFromSpecify = (specifier: string): IPackageInfo => {
   const match = specifier.match(REGEXP)
   // 匹配成功, 返回包名、版本信息
   if (match) {
-    let [, name, version] = match
+    const [, name, version] = match
     version = version.replace(/^\^/, '')
     return {
       name,
